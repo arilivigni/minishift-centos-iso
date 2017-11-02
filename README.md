@@ -2,7 +2,7 @@
 # Minishift CentOS VM
 
 This repository contains all the instructions and code to build a Live ISO based on CentOS
-which can be used by [minishift](https://github.com/minishift/minishift) as an alternative to
+which can be used by [minishift](https://github.com/Centos-PaaS-SIG/minishift) as an alternative to
 the boot2docker ISO.
 
 ----
@@ -59,7 +59,7 @@ If you don't have _livecd-tools or using different linux distro other than cento
 #### Building the ISO
 
 ```
-$ git clone https://github.com/minishift/minishift-centos-iso.git
+$ git clone https://github.com/Centos-PaaS-SIG/minishift-centos-iso.git
 $ cd minishift-centos-iso
 $ make
 ```
@@ -79,7 +79,7 @@ $ make
 #### Building the ISO
 
 ```
-$ git clone https://github.com/minishift/minishift-centos-iso.git
+$ git clone https://github.com/Centos-PaaS-SIG/minishift-centos-iso.git
 $ cd minishift-centos-iso
 $ vagrant up
 $ vagrant ssh
@@ -95,7 +95,7 @@ of CentOS. However, it requires you to have Red Hat VPN access and you need to e
 several environment variables prior to building:
 
 ```
-$ git clone https://github.com/minishift/minishift-centos-iso.git
+$ git clone https://github.com/Centos-PaaS-SIG/minishift-centos-iso.git
 $ cd minishift-centos-iso
 $ export rhel_tree_url="<rhel_tree_to_fetch_kernel>"
 $ export base_repo_url="<base_repo_url_to_install_packages>"
