@@ -221,6 +221,19 @@ systemctl enable minishift-set-ipaddress
 systemctl enable docker
 systemctl enable libvirtd
 
+# Change the default libvirt network IP range to allow for nested libvirt
+#!/usr/bin/env bash
+UUID=`/usr/bin/uuidgen`
+sed -e "s/192.168.122/192.168.199/g" \
+    -e "s,</name>,</name>\n  <uuid>$UUID</uuid>," \
+    < /usr/share/libvirt/networks/default.xml \
+    > /etc/libvirt/qemu/networks/default.xml
+#    ln -s ../default.xml /etc/libvirt/qemu/networks/autostart/default.xml
+
+# Make sure libvirt picks up the new network defininiton
+/bin/systemctl try-restart libvirtd.service >/dev/null 2>&1 ||:
+/bin/systemctl try-restart network.service >/dev/null 2>&1 ||:
+
 
 # Clean
 rm -rf /usr/lib/locale/locale-archive
