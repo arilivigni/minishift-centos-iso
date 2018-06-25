@@ -19,7 +19,7 @@ function exit_with_message() {
 
 function assert_equal() {
   if [ "$1" != "$2" ]; then
-    echo "Expected '$1' equal to '$2'"
+    echo "Expected '$2' but got '$1'"
     exit 1
   fi
 }
@@ -72,7 +72,7 @@ function verify_swap_space() {
 
 function verify_ssh_connection() {
   output=`$BINARY ssh -- echo hello`
-  assert_equal $output "hello"
+  assert_equal "$output" "hello"
   print_success_message "SSH Connection"
 }
 
@@ -109,7 +109,7 @@ function verify_nfs_installation() {
 
 function verify_bind_mount() {
   output=`$BINARY ssh -- 'findmnt | grep "\[/var/lib/" | wc -l'`
-  assert_equal $output "4"
+  assert_equal $output "8"
   print_success_message "Bind mount check"
 }
 
@@ -120,15 +120,16 @@ function verify_hvkvp_installation() {
   print_success_message "HVKVP check"
 }
 
+function verify_xfs_mount() {
+  expected="ftype=1"
+  output=`$BINARY ssh -- xfs_info /mnt/sda1 | grep ftype | awk '{print $6}'`
+  assert_equal "$output" "$expected"
+  print_success_message "xfs mount successful"
+}
+
 function verify_delete() {
   $BINARY delete --force
   exit_with_message "$?" "Error deleting Minishift VM"
-  output=`$BINARY status`
-  if [ "$1" != "$2" ]; then
-    echo "Expected '$1' equal to '$2'"
-    exit 1
-  fi
-  print_success_message "Deleting VM"
 }
 
 # Tests
@@ -142,4 +143,5 @@ verify_cifs_installation
 verify_sshfs_installation
 verify_nfs_installation
 verify_bind_mount
+verify_xfs_mount
 verify_delete

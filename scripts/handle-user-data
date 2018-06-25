@@ -1,8 +1,8 @@
 #!/bin/sh
 
-LABEL=boot2docker-data
+LABEL=b2d-data
 MAGIC="boot2docker, please format-me"
-UNPARTITIONED_HD=/dev/sda
+UNPARTITIONED_HD="/dev/$(lsblk | grep disk | grep ".*da" | cut -f1 -d' ')"
 
 # Function to mount partitions
 mount_partitions() {
@@ -23,7 +23,7 @@ mount_partitions() {
 
     # Just in case, the links will fail if not
     umount -f /var/lib/docker || true
-    rm -rf /var/lib/docker /var/lib/boot2docker /etc/docker /var/lib/minishift /opt
+    rm -rf /var/lib/docker /var/lib/boot2docker /var/lib/minishift /opt
 
     # Detected a disk with a normal linux install (/var/lib/docker + more))
     if [ ! -d "/var/lib" ]; then
@@ -41,23 +41,19 @@ mount_partitions() {
     mkdir -p /mnt/$PARTNAME/var/lib/docker
     mkdir -p /var/lib/docker
     mount --bind /mnt/$PARTNAME/var/lib/docker /var/lib/docker
+    restorecon -R /var/lib/docker
 
     mkdir -p /mnt/$PARTNAME/var/lib/boot2docker
     mkdir -p /var/lib/boot2docker
     mount --bind /mnt/$PARTNAME/var/lib/boot2docker /var/lib/boot2docker
 
-    mkdir -p /mnt/$PARTNAME/var/lib/boot2docker/etc/docker
-    mkdir -p /etc/docker
-    mount --bind /mnt/$PARTNAME/var/lib/boot2docker/etc/docker /etc/docker
-
     mkdir -p /mnt/$PARTNAME/var/lib/minishift
     mkdir -p /var/lib/minishift
     mount --bind /mnt/$PARTNAME/var/lib/minishift /var/lib/minishift
 
-    # Make sure /tmp is on the disk too
-    rm -rf /mnt/$PARTNAME/tmp || true
-    mv /tmp /mnt/$PARTNAME/tmp
-    ln -fs /mnt/$PARTNAME/tmp /tmp
+    mkdir -p /mnt/$PARTNAME/var/lib/origin
+    mkdir -p /var/lib/origin
+    mount --bind /mnt/$PARTNAME/var/lib/origin /var/lib/origin
 
     mkdir -p /mnt/$PARTNAME/opt
     ln -s /mnt/$PARTNAME/opt /opt
@@ -105,7 +101,7 @@ prepare_partions() {
     done
 
     BOOT2DOCKER_DATA=`echo "${UNPARTITIONED_HD}1"`
-    mkfs.ext4 -i 8192 -L $LABEL $BOOT2DOCKER_DATA
+    mkfs.xfs -n ftype=1 -i size=2048 -L $LABEL $BOOT2DOCKER_DATA
 }
 
 # Function to extract userdata.tar containing the ssh keys into the home directory /home/docker
@@ -140,7 +136,7 @@ fi
 HEADER=`dd if=$UNPARTITIONED_HD bs=1 count=${#MAGIC} 2>/dev/null`
 if [ "$HEADER" = "$MAGIC" ]; then
     # Read /userdata.tar with ssh keys and place it temporarily under /
-    dd if=/dev/sda of=/userdata.tar bs=1 count=4096 2>/dev/null
+    dd if=$UNPARTITIONED_HD of=/userdata.tar bs=1 count=4096 2>/dev/null
 
     prepare_partions
     mount_partitions
